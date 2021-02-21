@@ -1,0 +1,7 @@
+
+django
+redis
+
+# test
+fakeredis
+pytest
