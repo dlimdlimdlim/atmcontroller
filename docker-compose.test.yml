@@ -1,0 +1,34 @@
+version: '3.7'
+
+services:
+  redis:
+    image: redis:5.0.7-alpine
+  db:
+    image: mysql:8.0.16
+    volumes:
+      - database_volume:/var/lib/mysql
+    command: ["mysqld", "--default-authentication-plugin=mysql_native_password"]
+    environment:
+      - MYSQL_ROOT_PASSWORD=IAMROOTPASSWORD
+    ports:
+      - 3306:3306
+  test:
+    build: .
+    image: atm
+    command: pytest
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - DJANGO_DEBUG=true
+      - MYSQL_DATABASE=atm
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=IAMROOTPASSWORD
+      - REWARDSVC_HOST=localhost:9000
+
+
+volumes:
+  database_volume:
