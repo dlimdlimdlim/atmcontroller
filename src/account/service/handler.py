@@ -1,0 +1,50 @@
+from account.value_objects import AccountRecord
+from account.service import service_exceptions
+
+
+def set_session(card_num: int, pin: int, uow, session_manager):
+    with uow:
+        card = uow.account_data.get_card(card_num)
+        if not card.validate_pin(pin):
+            raise service_exceptions.IncorrectPin('Invalild pin code!')
+
+        session_key = session_manager.set_session(card.user_id)
+        return session_key
+
+
+def get_accounts(session_key: str, card_num: int, uow, session_manager):
+    with uow:
+        card = uow.account_data.get_card(card_num)
+        if session_manager.get_user_session_key(card.user_id) != session_key:
+            raise service_exceptions.InvalidSesionKey(f'seession key {session_key} is invalid!')
+
+        accounts = uow.account_data.get_user_accounts(card.user_id)
+        session_manager.extend_session(card.user_id)
+        return accounts
+
+
+def _account_action(session_key: str, account_id: int, action: str, amount: int, card_num: int, uow, session_manager):
+    with uow:
+        card = uow.account_data.get_card(card_num)
+        if session_manager.get_user_session_key(card.user_id) != session_key:
+            raise service_exceptions.InvalidSesionKey(f'seession key {session_key} is invalid!')
+
+        account = uow.account_data.get_account(card.user_id, account_id)
+
+        if action == AccountRecord.DEPOST:
+            account.deposit(amount)
+
+        elif action == AccountRecord.WITHDRAWL:
+            account.withdrawl(amount)
+        else:
+            raise ValueError('action must be either "deposit" or "withdrawl"')
+
+        session_manager.extend_session(card.user_id)
+
+
+def deposit(session_key: str, account_id: int, amount: int, card_num: int, uow):
+    return _account_action(session_key, account_id, AccountRecord.DEPOST, amount, card_num, uow)
+
+
+def withdrawal(session_key: str, account_id: int, amount: int, card_num: int, uow):
+    return _account_action(session_key, account_id, AccountRecord.WITHDRAWL, amount, card_num, uow)

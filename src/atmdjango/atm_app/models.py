@@ -9,7 +9,7 @@ class BankCard(models.Model):
     pin_hash = models.CharField(max_length=128)
 
 
-class Account(models.Model):
+class BankAccount(models.Model):
     user_id = models.BigIntegerField(db_index=True)
     account_name = models.CharField(max_length=256)
 
