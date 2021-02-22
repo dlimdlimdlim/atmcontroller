@@ -4,6 +4,7 @@ import pytest
 
 from account.entity import Account, Card, AccountRecord
 from account.service import handler, service_exceptions
+from account.domain_exception import NegativeAccountBalanceException
 from tests.conftest import FakeUnitOfWork, FakeSessionmanager
 
 
@@ -26,7 +27,7 @@ def setup_account_test(balance):
     return card_num, account.account_id, session_key, uow, session_manager
 
 
-@pytest.mark.parametrize('amount,balance', [(333,23223), (3581, 2775), (38467, 38467)])
+@pytest.mark.parametrize('amount,balance', [(333, 23223), (3581, 2775), (38467, 38467)])
 def test_deposit(amount, balance):
     card_num, account_id, session_key, uow, session_manager = setup_account_test(balance)
     handler.account_action(
@@ -40,18 +41,33 @@ def test_deposit(amount, balance):
     )
 
 
-@pytest.mark.parametrize('amount,balance', [(333,23223), (9, 10), (38467, 38467), (1, 1)])
+@pytest.mark.parametrize('amount,balance', [(333, 23223), (9, 10), (38467, 38467), (1, 1)])
 def test_withdrawal(amount, balance):
-    balance = 3289
     card_num, account_id, session_key, uow, session_manager = setup_account_test(balance)
     handler.account_action(
         session_key=session_key,
         account_id=account_id,
-        action=AccountRecord.DEPOSIT,
+        action=AccountRecord.WITHDRAWAL,
         card_num=card_num,
         uow=uow,
-        amount=balance + 1,
+        amount=amount,
         session_manager=session_manager
     )
+
+
+@pytest.mark.parametrize('amount,balance', [(2, 1), (1, 0), (100, 99), (124, 71)])
+def test_invalid_withdrawal(amount, balance):
+    balance = 3289
+    card_num, account_id, session_key, uow, session_manager = setup_account_test(balance)
+    with pytest.raises(NegativeAccountBalanceException):
+        handler.account_action(
+            session_key=session_key,
+            account_id=account_id,
+            action=AccountRecord.WITHDRAWAL,
+            card_num=card_num,
+            uow=uow,
+            amount=balance + 1,
+            session_manager=session_manager
+        )
 
 

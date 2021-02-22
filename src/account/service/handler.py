@@ -52,7 +52,7 @@ def account_action(
             account.deposit(amount)
 
         elif action == AccountRecord.WITHDRAWAL:
-            account.withdrawl(amount)
+            account.withdraw(amount)
         else:
             raise ValueError('action must be either "deposit" or "withdrawal"')
 
