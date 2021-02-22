@@ -2,10 +2,10 @@ import abc
 
 from django.db import close_old_connections, transaction
 
-from account.adaptors.account_repo import AccountRepository, DjangoRedisAccountRepo
+from account.adaptors.account_repo import AccountRepository, DjangoAccountRepo
 
 
-class AbstractUnitOfWork(abc.ABC):
+class UnitOfWork(abc.ABC):
     account_data: AccountRepository
 
     def __enter__(self):
@@ -31,11 +31,11 @@ class AbstractUnitOfWork(abc.ABC):
         raise NotImplementedError
 
 
-class DjangoRedisUnitOfWork(AbstractUnitOfWork):
-    account_data: DjangoRedisAccountRepo
+class DjangoUnitOfWork(UnitOfWork):
+    account_data: DjangoAccountRepo
 
     def get_data_repo(self):
-        return DjangoRedisAccountRepo()
+        return DjangoAccountRepo()
 
     def __enter__(self):
         self.account_data = self.get_data_repo()

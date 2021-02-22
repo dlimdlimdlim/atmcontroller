@@ -20,10 +20,6 @@ class AccountRepository(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def set_session(self, user_id: int) -> str:
-        raise NotImplementedError
-
-    @abc.abstractmethod
     def get_user_by_card(self, card_num: int) -> User:
         raise NotImplementedError
 
@@ -45,11 +41,7 @@ class AccountRepository(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class DjangoRedisAccountRepo(AccountRepository):
-    def __init__(self, redis_host, redis_port):
-        super(DjangoRedisAccountRepo, self).__init__()
-
-        self.redis = redis.Redis(host=redis_host, port=redis_port)
+class DjangoAccountRepo(AccountRepository):
 
     def get_card(self, card_num: int) -> Card:
         try:
@@ -58,12 +50,6 @@ class DjangoRedisAccountRepo(AccountRepository):
             raise service_exceptions.InvalidCardNum(f'card with number {card_num} does not exist!')
 
         return card
-
-    def set_session(self, user_id: int) -> str:
-        session_key = str(uuid4())
-        self.redis.set(str(user_id), session_key)
-        return session_key
-
 
     def view_user_accounts(self, user_id: int) -> List[Account]:
         accounts = []

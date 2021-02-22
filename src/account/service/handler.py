@@ -1,8 +1,10 @@
 from account.value_objects import AccountRecord
 from account.service import service_exceptions
+from account.adaptors.session_manager import SessionManager
+from account.service.unit_of_work import UnitOfWork
 
 
-def set_session(card_num: int, pin: int, uow, session_manager):
+def set_session(card_num: int, pin: int, uow: UnitOfWork, session_manager: SessionManager):
     with uow:
         card = uow.account_data.get_card(card_num)
         if not card.validate_pin(pin):
@@ -12,7 +14,7 @@ def set_session(card_num: int, pin: int, uow, session_manager):
         return session_key
 
 
-def get_accounts(session_key: str, card_num: int, uow, session_manager):
+def get_accounts(session_key: str, card_num: int, uow: UnitOfWork, session_manager: SessionManager):
     with uow:
         card = uow.account_data.get_card(card_num)
         if session_manager.get_user_session_key(card.user_id) != session_key:
@@ -23,7 +25,13 @@ def get_accounts(session_key: str, card_num: int, uow, session_manager):
         return accounts
 
 
-def _account_action(session_key: str, account_id: int, action: str, amount: int, card_num: int, uow, session_manager):
+def account_action(
+        session_key: str,
+        account_id: int,
+        action: str, amount: int,
+        card_num: int, uow: UnitOfWork,
+        session_manager: SessionManager
+):
     with uow:
         card = uow.account_data.get_card(card_num)
         if session_manager.get_user_session_key(card.user_id) != session_key:
@@ -40,11 +48,3 @@ def _account_action(session_key: str, account_id: int, action: str, amount: int,
             raise ValueError('action must be either "deposit" or "withdrawl"')
 
         session_manager.extend_session(card.user_id)
-
-
-def deposit(session_key: str, account_id: int, amount: int, card_num: int, uow):
-    return _account_action(session_key, account_id, AccountRecord.DEPOST, amount, card_num, uow)
-
-
-def withdrawal(session_key: str, account_id: int, amount: int, card_num: int, uow):
-    return _account_action(session_key, account_id, AccountRecord.WITHDRAWL, amount, card_num, uow)

@@ -2,6 +2,7 @@ import hashlib
 from typing import List, Optional
 
 from account.value_objects import AccountRecord
+from account.domain_exception import InvalidAmount, NegativeAccountBalanceException
 
 
 class Card:
@@ -29,16 +30,19 @@ class Account:
 
     def withdraw(self, amount):
         if amount <= 0:
-            raise
+            raise InvalidAmount('Withdrawal amount must be lareger than zero')
 
         balance = self.get_balance() - amount
+        if balance < 0:
+            raise NegativeAccountBalanceException(f'Not enough account blance to withdraw {amount}')
+
         new_record = AccountRecord(action=AccountRecord.WITHDRAWL, balance=balance, time_at=None)
         self.histories.append(new_record)
         self.new_histories.append(new_record)
 
     def deposit(self, amount):
-        if amount <= 0:
-            raise
+        if amount < 0:
+            raise InvalidAmount('Deposit amount must be lareger than zero')
 
         balance = self.get_balance() + amount
         new_record = AccountRecord(action=AccountRecord.WITHDRAWL, balance=balance, time_at=None)
