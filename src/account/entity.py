@@ -22,12 +22,13 @@ class Card:
 
 
 class Account:
-    def __init__(self, account_id: int, user_id: int, histories: List[AccountRecord]):
+    def __init__(self, account_id: int, user_id: int, name: str, histories: List[AccountRecord]):
         self.account_id = account_id
         self.user_id = user_id
         self.histories = histories
         self.histories.sort(key=lambda x: x.time_at)
         self.new_histories: List[AccountRecord] = []
+        self.name = name
 
     def get_balance(self) -> int:
         if not self.histories:
