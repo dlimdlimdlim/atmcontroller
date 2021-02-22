@@ -26,6 +26,9 @@ class Account:
         self.new_histories: List[AccountRecord] = []
 
     def get_balance(self) -> int:
+        if not self.histories:
+            return 0
+
         return self.histories[-1].balance
 
     def withdraw(self, amount):
@@ -48,9 +51,3 @@ class Account:
         new_record = AccountRecord(action=AccountRecord.WITHDRAWL, balance=balance, time_at=None)
         self.histories.append(new_record)
         self.new_histories.append(new_record)
-
-
-class User:
-    def __init__(self, user_id: int, session_key: Optional[str]):
-        self.user_id = user_id
-        self.session_key = session_key

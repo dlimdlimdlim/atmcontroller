@@ -20,7 +20,7 @@ class BankAccount(models.Model):
 class AccountHistory(models.Model):
     account_id = models.BigIntegerField(db_index=True)
     account_balance = models.BigIntegerField()
-    last_operation = models.CharField(max_length=32)
+    operation = models.CharField(max_length=32)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
