@@ -8,32 +8,20 @@ from atmdjango.atm_app.models import BankCard, BankAccount, AccountHistory
 
 
 class AccountRepository(metaclass=abc.ABCMeta):
-
-    def __init__(self):
-        self.seen_accounts: Set[Account] = set()
-
     @abc.abstractmethod
     def get_card(self, card_num: int) -> Optional[Card]:
         raise NotImplementedError
 
-    # this function is for read only, accounts retrieved from this function should not be modified
     @abc.abstractmethod
-    def view_user_accounts(self, user_id: int) -> List[Account]:
+    def get_user_accounts(self, user_id: int) -> List[Account]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _get_user_account(self, user_id) -> Optional[Account]:
+    def get_user_account(self, user_id: int,  account_id: int) -> Optional[Account]:
         raise NotImplementedError
 
-    def get_account(self, user_id: int) -> Optional[Account]:
-        account = self._get_user_account(user_id)
-        if account is None:
-            return
-        self.seen_accounts.add(account)
-        return account
-
     @abc.abstractmethod
-    def update_account(self, account_id: int, record: AccountRecord):
+    def update_account(self, account: Account):
         raise NotImplementedError
 
 
@@ -47,7 +35,7 @@ class DjangoAccountRepo(AccountRepository):
 
         return card
 
-    def view_user_accounts(self, user_id: int) -> List[Account]:
+    def get_user_accounts(self, user_id: int) -> List[Account]:
         accounts = []
         for account_data in BankAccount.objects.filter(user_id=user_id):
             account_last_record = AccountRecord.objects.filter(account_id=account_data.id).last('created_at')
@@ -59,7 +47,7 @@ class DjangoAccountRepo(AccountRepository):
 
         return accounts
 
-    def _get_user_account(self, user_id: int, account_id: int) -> Optional[Account]:
+    def get_user_account(self, user_id: int, account_id: int) -> Optional[Account]:
         try:
             account_data = BankAccount.objects.get(user_id=user_id, id=account_id)
         except ObjectDoesNotExist:
@@ -72,5 +60,10 @@ class DjangoAccountRepo(AccountRepository):
 
         return Account(user_id=user_id, account_id=account_data.id, histories=histories)
 
-    def update_account(self, account_id: int, record: AccountRecord):
-        AccountHistory.objects.create(account_id=account_id, account_balance=record.balance, operation=record.action)
+    def update_account(self, account: Account):
+        for record in account.new_histories:
+            AccountHistory.objects.create(
+                account_id=account.account_idid,
+                account_balance=record.balance,
+                operation=record.action
+            )

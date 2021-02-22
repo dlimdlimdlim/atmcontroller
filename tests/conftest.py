@@ -44,10 +44,10 @@ class FakeAccountRepo(AccountRepository):
 
         return self.cards[card_num]
 
-    def view_user_accounts(self, user_id: int) -> List[Account]:
+    def get_user_accounts(self, user_id: int) -> List[Account]:
         return [account for _, account in self.accounts.items() if account.user_id == user_id]
 
-    def _get_user_account(self, user_id: int, account_id: int) -> Optional[Account]:
+    def get_user_account(self, user_id: int, account_id: int) -> Optional[Account]:
         if account_id not in self.accounts:
             return None
         account = self.accounts[account_id]
@@ -56,8 +56,11 @@ class FakeAccountRepo(AccountRepository):
 
         return account
 
-    def update_account(self, account_id: int, record: AccountRecord):
-        self.accounts[account_id].histories.append(record)
+    def update_account(self, account: Account):
+        if account.new_histories:
+            account.histories = [account.new_histories[-1]]
+
+        account.new_histories = []
 
 
 class FakeUnitOfWork(UnitOfWork):

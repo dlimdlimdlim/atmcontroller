@@ -26,7 +26,7 @@ def get_accounts(session_key: str, card_num: int, uow: UnitOfWork, session_manag
         if not session_manager.validate_user_session(card.user_id, session_key):
             raise service_exceptions.InvalidSesionKey(f'seession key {session_key} is invalid!')
 
-        accounts = uow.account_data.view_user_accounts(card.user_id)
+        accounts = uow.account_data.get_user_accounts(card.user_id)
         session_manager.extend_session(card.user_id)
         return accounts
 
@@ -46,14 +46,15 @@ def account_action(
         if not session_manager.validate_user_session(card.user_id, session_key):
             raise service_exceptions.InvalidSesionKey(f'seession key {session_key} is invalid!')
 
-        account = uow.account_data.get_account(card.user_id, account_id)
+        account = uow.account_data.get_user_account(card.user_id, account_id)
 
-        if action == AccountRecord.DEPOST:
+        if action == AccountRecord.DEPOSIT:
             account.deposit(amount)
 
-        elif action == AccountRecord.WITHDRAWL:
+        elif action == AccountRecord.WITHDRAWAL:
             account.withdrawl(amount)
         else:
-            raise ValueError('action must be either "deposit" or "withdrawl"')
+            raise ValueError('action must be either "deposit" or "withdrawal"')
 
+        uow.account_data.update_account(account)
         session_manager.extend_session(card.user_id)

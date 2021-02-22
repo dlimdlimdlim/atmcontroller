@@ -17,11 +17,6 @@ class UnitOfWork(abc.ABC):
     def commit(self):
         self._commit()
 
-    def collect_new_events(self):
-        for item in self.account_data.seen_accounts:
-            while item.new_histories:
-                yield item.new_histories.pop(0)
-
     @abc.abstractmethod
     def _commit(self):
         raise NotImplementedError

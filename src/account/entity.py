@@ -44,7 +44,7 @@ class Account:
         if balance < 0:
             raise NegativeAccountBalanceException(f'Not enough account blance to withdraw {amount}')
 
-        new_record = AccountRecord(action=AccountRecord.WITHDRAWL, balance=balance, time_at=None)
+        new_record = AccountRecord(action=AccountRecord.WITHDRAWAL, balance=balance, time_at=None)
         self.histories.append(new_record)
         self.new_histories.append(new_record)
 
@@ -53,6 +53,6 @@ class Account:
             raise InvalidAmount('Deposit amount must be lareger than zero')
 
         balance = self.get_balance() + amount
-        new_record = AccountRecord(action=AccountRecord.WITHDRAWL, balance=balance, time_at=None)
+        new_record = AccountRecord(action=AccountRecord.WITHDRAWAL, balance=balance, time_at=None)
         self.histories.append(new_record)
         self.new_histories.append(new_record)
