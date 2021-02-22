@@ -27,7 +27,7 @@ def setup_account_test(balance):
     return card_num, account.account_id, session_key, uow, session_manager
 
 
-@pytest.mark.parametrize('amount,balance', [(333, 23223), (3581, 2775), (38467, 38467)])
+@pytest.mark.parametrize('amount,balance', [(333, 23223), (3581, 0), (38467, 38467)])
 def test_deposit(amount, balance):
     card_num, account_id, session_key, uow, session_manager = setup_account_test(balance)
     handler.account_action(
@@ -71,3 +71,29 @@ def test_invalid_withdrawal(amount, balance):
         )
 
 
+def test_invalid_session():
+    card_num, account_id, session_key, uow, session_manager = setup_account_test(0)
+    with pytest.raises(service_exceptions.InvalidSesionKey):
+        handler.account_action(
+            session_key=session_key + 'a',
+            account_id=account_id,
+            action=AccountRecord.DEPOSIT,
+            card_num=card_num,
+            uow=uow,
+            amount=10,
+            session_manager=session_manager
+        )
+
+
+def test_invalid_card():
+    card_num, account_id, session_key, uow, session_manager = setup_account_test(0)
+    with pytest.raises(service_exceptions.InvalidCardNum):
+        handler.account_action(
+            session_key=session_key,
+            account_id=account_id,
+            action=AccountRecord.DEPOSIT,
+            card_num=card_num + 1,
+            uow=uow,
+            amount=10,
+            session_manager=session_manager
+        )
