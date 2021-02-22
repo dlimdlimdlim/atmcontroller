@@ -2,9 +2,9 @@ from datetime import datetime
 
 import pytest
 
+from account import domain_exception
 from account.entity import Account, Card, AccountRecord
 from account.service import handler, service_exceptions
-from account.domain_exception import NegativeAccountBalanceException
 from tests.conftest import FakeUnitOfWork, FakeSessionmanager
 
 
@@ -59,7 +59,7 @@ def test_withdrawal(amount, balance):
 def test_invalid_withdrawal(amount, balance):
     balance = 3289
     card_num, account_id, session_key, uow, session_manager = setup_account_test(balance)
-    with pytest.raises(NegativeAccountBalanceException):
+    with pytest.raises(domain_exception.NegativeAccountBalanceException):
         handler.account_action(
             session_key=session_key,
             account_id=account_id,
@@ -95,5 +95,33 @@ def test_invalid_card():
             card_num=card_num + 1,
             uow=uow,
             amount=10,
+            session_manager=session_manager
+        )
+
+
+def test_invalid_amount():
+    card_num, account_id, session_key, uow, session_manager = setup_account_test(0)
+    with pytest.raises(domain_exception.InvalidAmount):
+        handler.account_action(
+            session_key=session_key,
+            account_id=account_id,
+            action=AccountRecord.DEPOSIT,
+            card_num=card_num,
+            uow=uow,
+            amount=-1,
+            session_manager=session_manager
+        )
+
+
+def test_invalid_action():
+    card_num, account_id, session_key, uow, session_manager = setup_account_test(0)
+    with pytest.raises(ValueError):
+        handler.account_action(
+            session_key=session_key,
+            account_id=account_id,
+            action='some',
+            card_num=card_num,
+            uow=uow,
+            amount=1,
             session_manager=session_manager
         )
