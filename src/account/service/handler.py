@@ -4,7 +4,7 @@ from account.adaptors.session_manager import SessionManager
 from account.service.unit_of_work import UnitOfWork
 
 
-def set_session(card_num: int, pin: int, uow: UnitOfWork, session_manager: SessionManager):
+def set_session(card_num: int, pin: str, uow: UnitOfWork, session_manager: SessionManager):
     with uow:
         card = uow.account_data.get_card(card_num)
         if not card:

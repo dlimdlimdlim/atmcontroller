@@ -26,8 +26,12 @@ py==1.10.0
     # via pytest
 pyparsing==2.4.7
     # via packaging
-pytest==6.2.2
+pytest-django==4.1.0
     # via -r requirements.in
+pytest==6.2.2
+    # via
+    #   -r requirements.in
+    #   pytest-django
 pytz==2021.1
     # via django
 redis==3.5.3

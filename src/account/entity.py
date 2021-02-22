@@ -14,7 +14,11 @@ class Card:
     def validate_pin(self, pin: str):
         salt = self.pin_salt_hash[:32]
         pin_hash = self.pin_salt_hash[32:]
-        return pin_hash == hashlib.pbkdf2_hmac('sha256', pin.encode(), salt.encode(), 100000).hex()
+        return pin_hash == self.hash_pin(pin, salt)
+
+    @staticmethod
+    def hash_pin(pin: str, salt: str):
+        return hashlib.pbkdf2_hmac('sha256', pin.encode(), salt.encode(), 100000).hex()
 
 
 class Account:

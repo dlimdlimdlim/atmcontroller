@@ -12,7 +12,7 @@ services:
       - MYSQL_ROOT_PASSWORD=IAMROOTPASSWORD
     ports:
       - 3306:3306
-  test:
+  tests:
     build: .
     image: atm
     command: pytest
@@ -20,11 +20,12 @@ services:
       - db
       - redis
     volumes:
-      - .:/app
-    working_dir: /app
+      - ./src:/src
+      - ./tests:/tests
+    working_dir: /tests
     environment:
       - DJANGO_DEBUG=true
-      - MYSQL_DATABASE=atm
+      # - MYSQL_DATABASE=atm
       - MYSQL_USER=root
       - MYSQL_PASSWORD=IAMROOTPASSWORD
       - REWARDSVC_HOST=localhost:9000
@@ -32,3 +33,4 @@ services:
 
 volumes:
   database_volume:
+  redis_volume:

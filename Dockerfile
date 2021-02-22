@@ -16,11 +16,15 @@ RUN wget http://eradman.com/entrproject/code/entr-3.9.tar.gz \
     && ./configure \
     && make install
 
-
-COPY /src  /src/
-COPY tests/ /tests/
 COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src/  /src/
+COPY tests/ /tests/
+
+COPY setup.py /
+RUN pip install -e .
+
 WORKDIR /src
 
 
