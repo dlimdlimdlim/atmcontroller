@@ -25,7 +25,7 @@ services:
     working_dir: /tests
     environment:
       - DJANGO_DEBUG=true
-      # - MYSQL_DATABASE=atm
+      - MYSQL_DATABASE=atm
       - MYSQL_USER=root
       - MYSQL_PASSWORD=IAMROOTPASSWORD
       - REWARDSVC_HOST=localhost:9000

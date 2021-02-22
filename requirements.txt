@@ -24,6 +24,8 @@ pluggy==0.13.1
     # via pytest
 py==1.10.0
     # via pytest
+pymysql==1.0.2
+    # via -r requirements.in
 pyparsing==2.4.7
     # via packaging
 pytest-django==4.1.0
