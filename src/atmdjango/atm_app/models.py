@@ -25,13 +25,15 @@ class BankAccount(models.Model):
 
 
 class AccountHistory(models.Model):
-    account_id = models.BigIntegerField(db_index=True)
+    account_id = models.BigIntegerField()
     account_balance = models.BigIntegerField()
     operation = models.CharField(max_length=32)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    operation_index = models.BigIntegerField()
 
     class Meta:
         index_together = [['account_id', 'created_at']]
+        unique_together = [['account_id', 'operation_index']]
 
     def to_domain(self):
         return AccountRecord(action=self.operation, balance=self.account_balance, time_at=self.created_at)

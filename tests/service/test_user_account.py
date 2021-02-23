@@ -5,6 +5,7 @@ from account.service import handler, service_exceptions
 from tests.conftest import FakeUnitOfWork, FakeSessionmanager
 
 
+@pytest.fixture
 def setup_account_test():
     card_num = 1373
     user_id = 1771
@@ -22,11 +23,11 @@ def setup_account_test():
         cards=[Card(card_num=card_num, user_id=user_id, pin_salt_hash='something')],
         accounts=accounts
     )
-    return card_num, user_id, session_key, user_accounts, uow, session_manager
+    yield card_num, user_id, session_key, user_accounts, uow, session_manager
 
 
-def test_get_user_accounts():
-    card_num, expected_user_id, session_key, expected_user_accounts, uow, session_manager = setup_account_test()
+def test_get_user_accounts(setup_account_test):
+    card_num, expected_user_id, session_key, expected_user_accounts, uow, session_manager = setup_account_test
     accounts = handler.get_accounts(
         session_key=session_key,
         card_num=card_num,
@@ -40,8 +41,8 @@ def test_get_user_accounts():
         assert expected_user_accounts[account.account_id].name == account.name
 
 
-def test_invalid_session():
-    card_num, expected_user_id, session_key, expected_user_accounts, uow, session_manager = setup_account_test()
+def test_invalid_session(setup_account_test):
+    card_num, expected_user_id, session_key, expected_user_accounts, uow, session_manager = setup_account_test
     with pytest.raises(service_exceptions.InvalidSesionKey):
         handler.get_accounts(
             session_key=session_key + '3',
@@ -51,8 +52,8 @@ def test_invalid_session():
         )
 
 
-def test_invalid_card():
-    card_num, expected_user_id, session_key, expected_user_accounts, uow, session_manager = setup_account_test()
+def test_invalid_card(setup_account_test):
+    card_num, expected_user_id, session_key, expected_user_accounts, uow, session_manager = setup_account_test
     with pytest.raises(service_exceptions.InvalidCardNum):
         handler.get_accounts(
             session_key=session_key,

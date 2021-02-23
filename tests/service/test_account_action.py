@@ -8,7 +8,7 @@ from account.service import handler, service_exceptions
 from tests.conftest import FakeUnitOfWork, FakeSessionmanager
 
 
-def setup_account_test(balance):
+def setup_account_test(balance, raise_update_failure=False):
     card_num = 1323
     user_id = 17718
     session_manager = FakeSessionmanager()
@@ -17,12 +17,20 @@ def setup_account_test(balance):
     account = Account(
         user_id=user_id,
         account_id=1, name='Test account',
-        histories=[AccountRecord(balance=balance, action=AccountRecord.DEPOSIT, time_at=datetime.utcnow())]
+        histories=[
+            AccountRecord(
+                record_index=372,
+                balance=balance,
+                action=AccountRecord.DEPOSIT,
+                time_at=datetime.utcnow()
+            )
+        ]
     )
 
     uow = FakeUnitOfWork(
         cards=[Card(card_num=card_num, user_id=user_id, pin_salt_hash='something')],
-        accounts=[account]
+        accounts=[account],
+        raise_update_failure=raise_update_failure
     )
     return card_num, account.account_id, session_key, uow, session_manager
 
@@ -120,6 +128,21 @@ def test_invalid_action():
             session_key=session_key,
             account_id=account_id,
             action='some',
+            card_num=card_num,
+            uow=uow,
+            amount=1,
+            session_manager=session_manager
+        )
+
+
+@pytest.mark.parametrize('action', [AccountRecord.DEPOSIT, AccountRecord.WITHDRAWAL])
+def test_action_record_integrity_failure(action):
+    card_num, account_id, session_key, uow, session_manager = setup_account_test(1, True)
+    with pytest.raises(service_exceptions.AccountHistoryIntegrityError):
+        handler.account_action(
+            session_key=session_key,
+            account_id=account_id,
+            action=action,
             card_num=card_num,
             uow=uow,
             amount=1,

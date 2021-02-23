@@ -5,6 +5,7 @@ from account.entity import Account, Card, AccountRecord
 from account.adaptors.account_repo import AccountRepository
 from account.adaptors.session_manager import SessionManager
 from account.service.unit_of_work import UnitOfWork
+from account.service.service_exceptions import AccountHistoryIntegrityError
 
 
 class FakeSessionmanager(SessionManager):
@@ -34,9 +35,13 @@ class FakeSessionmanager(SessionManager):
 
 
 class FakeAccountRepo(AccountRepository):
-    def __init__(self, cards: List[Card], accounts: List[Account]):
+    def __init__(self, cards: List[Card], accounts: List[Account], raise_update_failure=bool):
         self.cards: Dict[int, Card] = {card.card_num: card for card in cards}
         self.accounts: Dict[int, Account] = {account.account_id: account for account in accounts}
+        self.raise_update_failure = raise_update_failure
+
+    def set_update_failure(self, raise_failure: bool):
+        self.raise_update_failure = raise_failure
 
     def get_card(self, card_num: int) -> Optional[Card]:
         if card_num not in self.cards:
@@ -57,19 +62,18 @@ class FakeAccountRepo(AccountRepository):
         return account
 
     def update_account(self, account: Account):
-        if account.new_histories:
-            account.histories = [account.new_histories[-1]]
-
-        account.new_histories = []
+        if self.raise_update_failure:
+            raise AccountHistoryIntegrityError()
 
 
 class FakeUnitOfWork(UnitOfWork):
-    def __init__(self, cards: List[Card], accounts: List[Account]):
+    def __init__(self, cards: List[Card], accounts: List[Account], raise_update_failure: bool = False):
         self.cards = cards
         self.accounts = accounts
+        self.raise_update_failure = raise_update_failure
 
     def __enter__(self):
-        self.account_data = FakeAccountRepo(self.cards, self.accounts)
+        self.account_data = FakeAccountRepo(self.cards, self.accounts, self.raise_update_failure)
         return super().__enter__()
 
     def _commit(self):

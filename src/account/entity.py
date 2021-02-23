@@ -26,9 +26,13 @@ class Account:
         self.account_id = account_id
         self.user_id = user_id
         self.histories = histories
-        self.histories.sort(key=lambda x: x.time_at)
+        self.histories.sort(key=lambda x: x.record_index)
         self.new_histories: List[AccountRecord] = []
         self.name = name
+        self.last_record_index = 0
+
+        if self.histories:
+            self.last_record_index = self.histories[-1].record_index
 
     def get_balance(self) -> int:
         if not self.histories:
@@ -38,14 +42,23 @@ class Account:
 
     def withdraw(self, amount):
         if amount <= 0:
-            raise InvalidAmount('Withdrawal amount must be lareger than zero')
+            raise InvalidAmount('Withdrawal amount must be larger than zero')
 
         balance = self.get_balance() - amount
         if balance < 0:
             raise NegativeAccountBalanceException(f'Not enough account blance to withdraw {amount}')
 
-        new_record = AccountRecord(action=AccountRecord.WITHDRAWAL, balance=balance, time_at=None)
-        self.histories.append(new_record)
+        if self.new_histories:
+            new_record_index = self.new_histories[-1].record_index + 1
+        else:
+            new_record_index = self.histories[-1].record_index + 1
+
+        new_record = AccountRecord(
+            action=AccountRecord.WITHDRAWAL,
+            balance=balance,
+            record_index=new_record_index,
+            time_at=None
+        )
         self.new_histories.append(new_record)
 
     def deposit(self, amount):
@@ -53,6 +66,20 @@ class Account:
             raise InvalidAmount('Deposit amount must be lareger than zero')
 
         balance = self.get_balance() + amount
-        new_record = AccountRecord(action=AccountRecord.WITHDRAWAL, balance=balance, time_at=None)
-        self.histories.append(new_record)
+        if self.new_histories:
+            new_record_index = self.new_histories[-1].record_index + 1
+        else:
+            new_record_index = self.histories[-1].record_index + 1
+
+        new_record = AccountRecord(
+            action=AccountRecord.WITHDRAWAL,
+            balance=balance,
+            record_index=new_record_index,
+            time_at=None
+        )
         self.new_histories.append(new_record)
+
+    def commit_new_histories(self):
+        self.histories = self.histories + self.new_histories
+        self.new_histories = []
+

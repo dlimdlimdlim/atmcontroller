@@ -13,3 +13,7 @@ class InvalidSesionKey(Exception):
 
 class IncorrectPin(Exception):
     pass
+
+
+class AccountHistoryIntegrityError(Exception):
+    pass
