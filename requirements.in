@@ -1,0 +1,9 @@
+
+django
+redis
+
+# test
+fakeredis
+pytest
+pytest-django
+PyMySQL
