@@ -1,10 +1,13 @@
+from typing import List
+
+from account.entity import Account
 from account.value_objects import AccountRecord
 from account.service import service_exceptions
 from account.adaptors.session_manager import SessionManager
 from account.service.unit_of_work import UnitOfWork
 
 
-def set_session(card_num: int, pin: str, uow: UnitOfWork, session_manager: SessionManager):
+def set_session(card_num: int, pin: str, uow: UnitOfWork, session_manager: SessionManager) -> str:
     with uow:
         card = uow.account_data.get_card(card_num)
         if not card:
@@ -17,7 +20,7 @@ def set_session(card_num: int, pin: str, uow: UnitOfWork, session_manager: Sessi
         return session_key
 
 
-def get_accounts(session_key: str, card_num: int, uow: UnitOfWork, session_manager: SessionManager):
+def get_accounts(session_key: str, card_num: int, uow: UnitOfWork, session_manager: SessionManager) -> List[Account]:
     with uow:
         card = uow.account_data.get_card(card_num)
         if not card:
@@ -37,7 +40,7 @@ def account_action(
         action: str, amount: int,
         card_num: int, uow: UnitOfWork,
         session_manager: SessionManager
-):
+) -> Account:
     with uow:
         card = uow.account_data.get_card(card_num)
         if not card:
@@ -58,3 +61,5 @@ def account_action(
 
         uow.account_data.update_account(account)
         session_manager.extend_session(card.user_id)
+        account.commit_new_histories()
+        return account
