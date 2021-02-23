@@ -36,7 +36,12 @@ class AccountHistory(models.Model):
         unique_together = [['account_id', 'operation_index']]
 
     def to_domain(self):
-        return AccountRecord(action=self.operation, balance=self.account_balance, time_at=self.created_at)
+        return AccountRecord(
+            action=self.operation,
+            balance=self.account_balance,
+            time_at=self.created_at,
+            record_index=self.operation_index
+        )
 
     @staticmethod
     def from_domain(account_record: AccountRecord, account_id: int):

@@ -65,11 +65,18 @@ class DjangoAccountRepo(AccountRepository):
             return None
 
         histories = []
-        account_last_record = AccountHistory.objects.filter(account_id=account_data.id).last('created_at')
+        account_last_record = AccountHistory.objects.filter(
+                account_id=account_data.id
+            ).order_by('operation_index').last()
         if account_last_record:
             histories = [account_last_record.to_domain()]
 
-        return Account(user_id=user_id, account_id=account_data.id, histories=histories)
+        return Account(
+            user_id=user_id,
+            name=account_data.account_name,
+            account_id=account_data.id,
+            histories=histories
+        )
 
     def update_account(self, account: Account):
         for record in account.new_histories:
