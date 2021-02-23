@@ -3,6 +3,8 @@ version: '3.7'
 services:
   redis:
     image: redis:5.0.7-alpine
+    volumes:
+      - redis_volume:/var/lib/redis/data
   db:
     image: mysql:8.0.16
     volumes:
@@ -28,7 +30,8 @@ services:
       - MYSQL_DATABASE=atm
       - MYSQL_USER=root
       - MYSQL_PASSWORD=IAMROOTPASSWORD
-      - REWARDSVC_HOST=localhost:9000
+      - REDIS_HOST=redis
+      - REDIS_DB=0
 
 
 volumes:
