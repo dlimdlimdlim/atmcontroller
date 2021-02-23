@@ -79,6 +79,7 @@ class DjangoAccountRepo(AccountRepository):
         )
 
     def update_account(self, account: Account):
+        account.new_histories.sort(key=lambda x: x.record_index)
         for record in account.new_histories:
             try:
                 AccountHistory.objects.create(

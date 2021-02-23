@@ -1,7 +1,11 @@
+from datetime import datetime
+
 import pytest
 
 from account.adaptors.account_repo import DjangoAccountRepo
+from account.entity import Account
 from account.value_objects import AccountRecord
+from account.service.service_exceptions import AccountHistoryIntegrityError
 from atmdjango.atm_app.models import AccountHistory, BankAccount, BankCard
 
 
@@ -141,7 +145,59 @@ def test_get_user_accout_overwrite_last_record(account_with_history):
     assert account.get_balance() == new_balance
 
 
-
 @pytest.mark.django_db
 def test_update_account():
-    pass
+    account = Account(
+        account_id=3232,
+        user_id=822,
+        name='France is Bacon',
+        histories=[
+            AccountRecord(action=AccountRecord.DEPOSIT, balance=376, record_index=39, time_at=datetime.utcnow())
+        ]
+    )
+
+    new_histories = [
+        AccountRecord(action=AccountRecord.DEPOSIT, balance=5000, record_index=40),
+        AccountRecord(action=AccountRecord.WITHDRAWAL, balance=400, record_index=41)
+    ]
+    account.new_histories = new_histories
+    repo = DjangoAccountRepo()
+
+    repo.update_account(account)
+
+    for record in new_histories:
+        history_data = AccountHistory.objects.get(account_id=account.account_id, operation_index=record.record_index)
+        assert history_data.operation == record.action
+        assert history_data.account_balance == record.balance
+
+
+@pytest.mark.django_db(transaction=True)
+def test_update_account_integrity_failure():
+    account = Account(
+        account_id=3232,
+        user_id=822,
+        name='France is Bacon',
+        histories=[
+            AccountRecord(action=AccountRecord.DEPOSIT, balance=376, record_index=39, time_at=datetime.utcnow())
+        ]
+    )
+
+    new_histories = [
+        AccountRecord(action=AccountRecord.DEPOSIT, balance=5000, record_index=40),
+        AccountRecord(action=AccountRecord.WITHDRAWAL, balance=400, record_index=41)
+    ]
+    account.new_histories = new_histories
+
+    AccountHistory.objects.create(
+        account_id=account.account_id,
+        operation_index=40, account_balance=7899,
+        operation=AccountRecord.WITHDRAWAL
+    )
+
+    repo = DjangoAccountRepo()
+
+    with pytest.raises(AccountHistoryIntegrityError):
+        repo.update_account(account)
+
+    # check if no new history is created by repo
+    assert len(AccountHistory.objects.all()) == 1
